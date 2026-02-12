@@ -1,12 +1,22 @@
 import * as cheerio from 'cheerio';
 
-export async function scrapeGoldCoast() {
+interface ScrapedEvent {
+  title: string;
+  description: string;
+  start_datetime: string;
+  suburb: string;
+  source_url: string;
+  source: string;
+  price_type: string;
+}
+
+export async function scrapeGoldCoast(): Promise<ScrapedEvent[]> {
   try {
     const res = await fetch('https://www.goldcoast.qld.gov.au/Services/Events');
     const html = await res.text();
     const $ = cheerio.load(html);
     
-    const events = [];
+    const events: ScrapedEvent[] = [];
     
     // Adjust selectors based on actual HTML structure
     $('.event-item, .event-card, article').each((i, elem) => {
@@ -20,7 +30,7 @@ export async function scrapeGoldCoast() {
           description: $(elem).find('p, .description').first().text().trim(),
           start_datetime: new Date(date).toISOString(),
           suburb: 'Gold Coast',
-          source_url: link?.startsWith('http') ? link : `https://www.goldcoast.qld.gov.au${link}`,
+          source_url: link?.startsWith('http') ? link : `https://www.goldcoast.qld.gov.au${link || ''}`,
           source: 'gc-council',
           price_type: 'free'
         });
